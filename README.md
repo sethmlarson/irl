@@ -1,6 +1,6 @@
-# Yet Another URL Library (YAUL)
+# irl
 
-YAUL (pronounced "ya'll") is a URL parser library that has a mixture of very strict rules around
+`irl` is a URL parser library that has a mixture of very strict rules around
 a URL's host and port section but very relaxed in all other sections making it
 the ideal balance of secure, tolerant, and performant.
 
@@ -12,13 +12,13 @@ users expect them to work anyways!
 
 Supports Python 3.6 or later.
 
-`python -m pip install yaul`
+`python -m pip install irl`
 
 ## Usage
 
 ```python
->>> import yaul
->>> url = yaul.URL.parse("https://user:pass@example.com:1234/path?q=ue&r=&y#frag")
+>>> import irl
+>>> url = irl.URL.parse("https://user:pass@example.com:1234/path?q=ue&r=&y#frag")
 
 >>> print(repr(url))
 URL(scheme="https", userinfo="user:pass", host="example.com", port=1234, path="/path", query="q=ue&r=&y", fragment="frag")
