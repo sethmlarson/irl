@@ -24,4 +24,13 @@ def check(session):
 def test(session):
     session.install("pytest", "pytest-cov")
     session.install(".")
-    session.run("pytest", "--cov=irl", "--cov-report=term-missing", *session.posargs)
+    session.run(
+        "coverage",
+        "run",
+        "--omit='*'",
+        "-m",
+        "pytest",
+        "--cov=irl",
+        "--cov-report=term-missing",
+        *session.posargs,
+    )

@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 
 
 __all__ = ["URL", "URLError"]
-__version__ = "0.1"
+__version__ = "0.2"
 
 
 # fmt: off

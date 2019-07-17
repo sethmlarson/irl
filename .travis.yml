@@ -1,7 +1,16 @@
 language: python
 dist: xenial
 sudo: required
+stage: test
 cache: pip
+
+notifications:
+  email: false
+
+env:
+  global:
+    - PYPI_USERNAME=SethMichaelLarson
+    # PYPI_PASSWORD is set in the Travis settings
 
 matrix:
   include:
@@ -14,6 +23,14 @@ matrix:
     - python: 3.8-dev
       env: NOXENV=test-3.8
 
+    - python: 3.7
+      stage: deploy
+      install:
+        - python -m pip install twine
+      script:
+        - python setup.py sdist bdist_wheel
+        - python -m twine upload dist/* -u ${PYPI_USERNAME} -p ${PYPI_PASSWORD} --skip-existing
+
   allow_failures:
     - python: 3.8-dev
 
@@ -24,5 +41,14 @@ script:
   - nox -s ${NOXENV}
 
 after_success:
-  - python -m pip install codecov
-  - codecov
+  - if [ -f ".coverage" ]; then
+        python -m pip install codecov;
+        codecov;
+    fi
+
+stages:
+ - name: test
+   if: tag IS blank
+
+ - name: deploy
+   if: tag IS present AND tag =~ /^(\d+\.\d+(?:.\d+)?)$/ AND repo = sethmlarson/irl
