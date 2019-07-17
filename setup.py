@@ -17,4 +17,5 @@ setup(
     author_email="sethmichaellarson@gmail.com",
     py_modules=["irl"],
     python_requires=">=3.6",
+    install_requires=["idna"],
 )

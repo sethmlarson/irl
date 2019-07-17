@@ -3,7 +3,7 @@ import typing
 from urllib.parse import urljoin
 
 
-__all__ = ["URL", "URLError", "items_to_query"]
+__all__ = ["URL", "URLError"]
 __version__ = "0.1"
 
 
@@ -59,10 +59,10 @@ IPV6_ADDRZ_RE = re.compile("^" + IPV6_ADDRZ_PAT + "$")
 ZONE_ID_RE = re.compile("(" + ZONE_ID_PAT + r")\]$")
 
 SUBAUTHORITY_PAT = (
-        "^(?:(.*)@)?"
-        "(%s|%s|%s)"
-        "(?::([0-9]{0,5}))?$"
-    ) % (REG_NAME_PAT, IPV4_PAT, IPV6_ADDRZ_PAT)
+    "^(?:(.*)@)?"
+    "(%s|%s|%s)"
+    "(?::([0-9]{0,5}))?$"
+) % (REG_NAME_PAT, IPV4_PAT, IPV6_ADDRZ_PAT)
 SUBAUTHORITY_RE = re.compile(
     SUBAUTHORITY_PAT,
     re.UNICODE | re.DOTALL,
@@ -80,22 +80,21 @@ PATH_CHARS = USERINFO_CHARS | {"@", "/"}
 QUERY_CHARS = FRAGMENT_CHARS = PATH_CHARS | {"?"}
 
 DEFAULT_PORTS: typing.Dict[str, int] = {
+    "ftp": 21,
+    "ssh": 22,
+    "gopher": 70,
     "http": 80,
+    "ws": 80,
     "https": 443,
+    "wss": 443,
     "socks4": 1080,
     "socks4a": 1080,
     "socks5": 1080,
-    "socks5h": 1080
+    "socks5h": 1080,
 }
 NORMALIZABLE_SCHEMES = {None, "http", "https"}
 
 # fmt: on
-
-
-def items_to_query(
-    query: typing.Iterable[typing.Tuple[str, typing.Optional[str]]]
-) -> str:
-    return "&".join(f"{key}={val}" if val is not None else key for key, val in query)
 
 
 class URLError(Exception):
@@ -135,10 +134,6 @@ class URL(typing.NamedTuple):
             if authority:
                 userinfo, host, port = SUBAUTHORITY_RE.match(authority).groups()
 
-                # Userinfo is allowed to contain percent-encoded characters.
-                if userinfo and is_normalizable:
-                    userinfo = _encode_invalid_chars(userinfo, USERINFO_CHARS)
-
                 # Ports when empty we just ignore them.
                 if port == "":
                     port = None
@@ -153,12 +148,12 @@ class URL(typing.NamedTuple):
 
             host = _normalize_host(host, scheme)
 
-            # Path, Query, and Fragment can all have percent-encoded characters
-            if is_normalizable and path:
+            # Userinfo, Path, Query, and Fragment can all have
+            # percent-encoded characters
+            if is_normalizable:
+                userinfo = _encode_invalid_chars(userinfo, USERINFO_CHARS)
                 path = _normalize_path(path)
-            if is_normalizable and query:
                 query = _encode_invalid_chars(query, QUERY_CHARS)
-            if is_normalizable and fragment:
                 fragment = _encode_invalid_chars(fragment, FRAGMENT_CHARS)
 
         except (ValueError, AttributeError):
@@ -178,9 +173,9 @@ class URL(typing.NamedTuple):
         """Gets the HTTP target (or ':path' for HTTP/2+) of a
         non-OPTIONS/CONNECT request for this URL.
         """
-        target = (self.path or "/").encode("ascii")
+        target = (self.path or "/").encode()
         if self.query is not None:
-            target += b"?" + self.query.encode("ascii")
+            target += b"?" + self.query.encode()
         return target
 
     def host_header(self) -> bytes:
@@ -189,18 +184,13 @@ class URL(typing.NamedTuple):
         """
         if self.host is None:
             raise URLError("Unable to create 'Host' header without host")
-        header = self.host.encode("ascii")
 
         # Zone ID shouldn't be sent in the 'Host' header as it's not
         # relevant outside of the client machine to pick a network interface.
-        if IPV6_ADDRZ_RE.match(self.host):
-            match = ZONE_ID_RE.search(self.host)
-            if match:
-                start, end = match.span(1)
-                header = (self.host[:start] + self.host[end:]).encode("ascii")
+        header = _remove_ipv6_zone_id(self.host).encode()
 
         if self.port is not None:
-            header += b":" + str(self.port).encode("ascii")
+            header += b":" + str(self.port).encode()
 
         return header
 
@@ -210,14 +200,21 @@ class URL(typing.NamedTuple):
         """
         if self.host is None:
             raise URLError("Unable to get a 'host' for address()")
+        host = self.host
+        if host.startswith("[") and host.endswith("]"):
+            host = host[1:-1]
         port = self.port_with_defaults()
         if port is None:
             raise URLError("Unable to get a 'port' for address()")
-        return self.host, port
+        return host, port
 
-    def join(self, rel: str) -> "URL":
-        """Joins a relative or absolute URL onto this URL"""
-        return URL.parse(urljoin(self.unsplit(), rel))
+    def redirect(self, rel: str) -> "URL":
+        """Joins a relative or absolute URL onto this URL.
+        Don't allow external services to decide an IPv6 Zone ID for us.
+        """
+        url = URL.parse(urljoin(self.unsplit(), rel))
+        url.host = _remove_ipv6_zone_id(url.host)
+        return url
 
     def normalize(self) -> "URL":
         return URL.parse(self.unsplit())
@@ -247,24 +244,16 @@ class URL(typing.NamedTuple):
             return DEFAULT_PORTS[self.scheme]
         return self.port
 
-    def query_to_items(self) -> typing.List[typing.Tuple[str, typing.Optional[str]]]:
-        if not self.query:
-            return []
-        return [
-            tuple(p.split("=", 1)) if "=" in p else (p, None)
-            for p in self.query.split("&")
-        ]
-
     def __str__(self):
         return self.unsplit()
 
     def __eq__(self, other):
-        if not isinstance(other, URL):
+        if not isinstance(other, URL):  # pragma: nocover
             return NotImplemented
         return tuple(self.normalize()) == tuple(other.normalize())
 
     def __ne__(self, other):
-        if not isinstance(other, URL):
+        if not isinstance(other, URL):  # pragma: nocover
             return NotImplemented
         return tuple(self.normalize()) != tuple(other.normalize())
 
@@ -379,10 +368,8 @@ def _normalize_host(
 def _idna_encode(name: str) -> str:
     """IDNA-encoded a single label within a REG-NAME hostname"""
     if name and any(ord(x) > 0x7F for x in name):
-        try:
-            import idna
-        except ImportError:
-            raise URLError("Requires 'idna' package to encode IDN-labels")
+        import idna
+
         try:
             return idna.encode(name.lower(), strict=True, std3_rules=True).decode(
                 "ascii"
@@ -390,3 +377,12 @@ def _idna_encode(name: str) -> str:
         except idna.IDNAError:
             raise URLError(f"{name!r} is not a valid IDN-label")
     return name.lower()
+
+
+def _remove_ipv6_zone_id(host: typing.Optional[str]) -> typing.Optional[str]:
+    if host and IPV6_ADDRZ_RE.match(host):
+        match = ZONE_ID_RE.search(host)
+        if match:
+            start, end = match.span(1)
+            return host[:start] + host[end:]
+    return host

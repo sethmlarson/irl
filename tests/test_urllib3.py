@@ -1,3 +1,5 @@
+# urllib3's test suite for URLs
+
 import pytest
 import irl
 
@@ -166,18 +168,12 @@ def test_control_characters_are_percent_encoded(char):
 
 
 parse_url_host_map = [
-    (
-        "http://google.com/mail",
-        irl.URL(scheme="http", host="google.com", path="/mail"),
-    ),
+    ("http://google.com/mail", irl.URL(scheme="http", host="google.com", path="/mail")),
     (
         "http://google.com/mail/",
         irl.URL(scheme="http", host="google.com", path="/mail/"),
     ),
-    (
-        "http://google.com/mail",
-        irl.URL(scheme="http", host="google.com", path="/mail"),
-    ),
+    ("http://google.com/mail", irl.URL(scheme="http", host="google.com", path="/mail")),
     ("google.com/mail", irl.URL(host="google.com", path="/mail")),
     ("http://google.com/", irl.URL(scheme="http", host="google.com", path="/")),
     ("http://google.com", irl.URL(scheme="http", host="google.com")),
@@ -264,9 +260,7 @@ non_round_tripping_parse_url_host_map = [
     ),
     (
         'http://user":quoted@example.com/',
-        irl.URL(
-            scheme="http", userinfo="user%22:quoted", host="example.com", path="/"
-        ),
+        irl.URL(scheme="http", userinfo="user%22:quoted", host="example.com", path="/"),
     ),
     # Unicode Surrogates
     (
@@ -347,6 +341,7 @@ url_host_header_map = [
     ("google.com/foobar", b"google.com"),
     ("google.com:12345", b"google.com:12345"),
     ("http://[::1%eth0]:80/", b"[::1]:80"),
+    ("http://[::1%25eth0]/", b"[::1]"),
 ]
 
 

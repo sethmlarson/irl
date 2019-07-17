@@ -1,0 +1,28 @@
+language: python
+dist: xenial
+sudo: required
+cache: pip
+
+matrix:
+  include:
+    - python: 3.7
+      env: NOXENV=check
+    - python: 3.6
+      env: NOXENV=test-3.6
+    - python: 3.7
+      env: NOXENV=test-3.7
+    - python: 3.8-dev
+      env: NOXENV=test-3.8
+
+  allow_failures:
+    - python: 3.8-dev
+
+install:
+  - python -m pip install nox
+
+script:
+  - nox -s ${NOXENV}
+
+after_success:
+  - python -m pip install codecov
+  - codecov
