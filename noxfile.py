@@ -1,7 +1,7 @@
 import nox
 
 
-source_files = ("irl/", "noxfile.py", "setup.py", "tests/")
+source_files = ("irl/", "noxfile.py", "tests/")
 
 
 @nox.session(reuse_venv=True)

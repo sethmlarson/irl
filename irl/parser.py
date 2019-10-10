@@ -143,7 +143,7 @@ class Parser:
                     path=self.base_url.path,
                     query=self.base_url.query,
                     fragment="",
-                    cannot_be_base_url=True
+                    cannot_be_base_url=True,
                 )
                 self.state = ParserState.FRAGMENT
 
@@ -181,7 +181,7 @@ class Parser:
                     host=self.base_url.host,
                     port=self.base_url.port,
                     path=self.base_url.path,
-                    query=self.base_url.query
+                    query=self.base_url.query,
                 )
 
                 if char == "#":

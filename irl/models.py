@@ -132,7 +132,11 @@ class BaseURL:
         path = self.path if path is _DEFAULT else path
         query = self.query if query is _DEFAULT else query
         fragment = self.fragment if fragment is _DEFAULT else fragment
-        cannot_be_base_url = self.cannot_be_base_url if cannot_be_base_url is _DEFAULT else cannot_be_base_url
+        cannot_be_base_url = (
+            self.cannot_be_base_url
+            if cannot_be_base_url is _DEFAULT
+            else cannot_be_base_url
+        )
 
         url = type(self)(
             scheme=scheme,
@@ -143,7 +147,7 @@ class BaseURL:
             path=path,
             query=query,
             fragment=fragment,
-            cannot_be_base_url=cannot_be_base_url
+            cannot_be_base_url=cannot_be_base_url,
         )
         return url
 
@@ -157,7 +161,7 @@ class BaseURL:
             self.path,
             self.query,
             self.fragment,
-            self.cannot_be_base_url
+            self.cannot_be_base_url,
         )
 
     def __repr__(self) -> str:
