@@ -1,0 +1,12 @@
+[build-system]
+requires = ["flit"]
+build-backend = "flit.buildapi"
+
+[tool.flit.metadata]
+module = "irl"
+author = "Seth Michael Larson"
+author-email = "sethmichaellarson@gmail.com"
+home-page = "https://github.com/sethmlarson/irl"
+classifiers = ["License :: OSI Approved :: Apache Software License"]
+requires = ["idna", "homoglyphs"]
+requires-python = ">=3.6"
