@@ -7,6 +7,7 @@ module = "irl"
 author = "Seth Michael Larson"
 author-email = "sethmichaellarson@gmail.com"
 home-page = "https://github.com/sethmlarson/irl"
+description-file = "README.md"
 classifiers = ["License :: OSI Approved :: Apache Software License"]
 requires = ["idna", "homoglyphs"]
 requires-python = ">=3.6"
