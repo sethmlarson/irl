@@ -9,5 +9,5 @@ author-email = "sethmichaellarson@gmail.com"
 home-page = "https://github.com/sethmlarson/irl"
 description-file = "README.md"
 classifiers = ["License :: OSI Approved :: Apache Software License"]
-requires = ["idna", "homoglyphs"]
+requires = ["idna", "psl", "homoglyphs"]
 requires-python = ">=3.6"
