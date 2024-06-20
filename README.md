@@ -1,5 +1,7 @@
 # irl
 
+[![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
+
 `irl` is a URL parser library that has a mixture of very strict rules around
 a URL's host and port section but very relaxed in all other sections making it
 the ideal balance of secure, tolerant, and performant.
